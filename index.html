@@ -80,6 +80,7 @@
             .btn-green { background-color: #27ae60; }
             .btn-red { background-color: #c0392b; }
             .btn-blue { background-color: #2980b9; }
+            .btn-toggle { background-color: #7f8c8d; } /* Warna kelabu untuk toggle */
             .btn i { margin-right: 8px; }
 
             .info-label { font-size: 10px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; }
@@ -97,7 +98,7 @@
     </head>
     <body>
         
-        <header>
+        <header id="mainHeader">
             <video autoplay muted loop id="header-video">
                 <source src="https://www.w3schools.com/howto/rain.mp4" type="video/mp4">
             </video>
@@ -115,6 +116,13 @@
 
             <div class="sidebar">
                 <div class="section-title"><i class="fas fa-cog"></i> Tetapan Paparan</div>
+                
+                <div class="control-group">
+                    <button class="btn btn-toggle" id="btnToggleHeader" onclick="toggleHeader()">
+                        <i class="fas fa-eye-slash"></i> OFF HEADER
+                    </button>
+                </div>
+
                 <div class="section-title"><i class="fas fa-globe"></i> Land Explorer</div>
                 
                 <div class="control-group">
@@ -162,6 +170,27 @@
 
             var highlightLayer;
             window.selectedLotData = null;
+
+            // --- FUNGSI ON/OFF HEADER ---
+            function toggleHeader() {
+                var header = document.getElementById('mainHeader');
+                var btn = document.getElementById('btnToggleHeader');
+                
+                if (header.style.display === "none") {
+                    header.style.display = "flex";
+                    btn.innerHTML = '<i class="fas fa-eye-slash"></i> OFF HEADER';
+                    btn.style.backgroundColor = "#7f8c8d";
+                } else {
+                    header.style.display = "none";
+                    btn.innerHTML = '<i class="fas fa-eye"></i> ON HEADER';
+                    btn.style.backgroundColor = "#27ae60";
+                }
+                
+                // Kemaskini saiz peta selepas header berubah
+                setTimeout(function() {
+                    map.invalidateSize();
+                }, 200);
+            }
 
             function updateSidebar(props) {
                 if (props) {
@@ -236,7 +265,6 @@
                 updateSidebar(null);
             }
 
-            // --- FUNGSI CETAK PDF (VERSI TERBAIK/BETUL) ---
             async function cetakPDF() {
                 if (!window.selectedLotData) { 
                     alert("Sila pilih lot di atas peta terlebih dahulu!"); 
@@ -245,7 +273,6 @@
                 
                 document.getElementById('loading-overlay').style.display = 'block';
 
-                // Gunakan scale: 2 untuk memastikan gambar peta dalam PDF tajam (HD)
                 const mapElement = document.getElementById('map');
                 const mapCanvas = await html2canvas(mapElement, {
                     useCORS: true,
@@ -256,7 +283,6 @@
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF('l', 'mm', 'a4'); 
 
-                // --- DESIGN HEADER ---
                 doc.setFillColor(30, 37, 45); 
                 doc.rect(0, 0, 297, 40, 'F'); 
                 
@@ -269,13 +295,11 @@
                 doc.setFont("helvetica", "italic");
                 doc.text("Dijana melalui Sistem Smart Resident PUO", 148.5, 26, { align: 'center' });
                 
-                // Tambah Tarikh Cetakan
                 const tarikh = new Date().toLocaleString('ms-MY');
                 doc.setFontSize(8);
                 doc.setFont("helvetica", "normal");
                 doc.text("Tarikh Cetakan: " + tarikh, 20, 35);
 
-                // --- DATA LOT (BAHAGIAN KIRI) ---
                 let startY = 60;
                 const leftX = 20;
                 doc.setTextColor(0, 0, 0);
@@ -303,24 +327,19 @@
                 drawField("KEGUNAAN", window.selectedLotData['KEGUNAAN'] || "KEDIAMAN");
                 drawField("STATUS DATA", "SAH / AKTIF");
 
-                // --- GAMBAR PETA (BAHAGIAN KANAN) ---
                 const imgWidth = 170;
                 const imgHeight = 120;
                 
-                // Bingkai Peta
                 doc.setDrawColor(30, 37, 45);
                 doc.setLineWidth(1);
                 doc.rect(105, 55, imgWidth, imgHeight); 
                 
-                // Masukkan Gambar Peta
                 doc.addImage(mapCanvas.toDataURL('image/png'), 'PNG', 105, 55, imgWidth, imgHeight);
 
-                // Footer
                 doc.setFontSize(8);
                 doc.setTextColor(150, 150, 150);
                 doc.text("Dokumen ini adalah cetakan sistem pintar dan tidak memerlukan tandatangan fizikal.", 148.5, 195, { align: 'center' });
 
-                // Muat Turun Fail
                 doc.save("Laporan_Lot_" + (window.selectedLotData['NO LOT'] || "PUO") + ".pdf");
                 document.getElementById('loading-overlay').style.display = 'none';
             }
