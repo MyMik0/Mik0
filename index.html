@@ -15,33 +15,44 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
         <style>
-            html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-            
-            /* UI LAYOUT */
-            .main-container { display: flex; flex-direction: column; height: 100vh; }
-            
-            /* TOP BAR */
-            .top-header {
-                background-color: #1b4d24; /* Hijau gelap seperti gambar */
-                color: white;
-                height: 50px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-style: italic;
-                font-family: 'Georgia', serif;
-                font-size: 22px;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-                z-index: 1001;
+            html, body { height: 100%; margin: 0; padding: 0; display: flex; flex-direction: column; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+
+            /* HEADER SECTION (KEKALKAN VERSION ASAL) */
+            header {
+                position: relative; height: 120px; width: 100%; overflow: hidden;
+                display: flex; align-items: center; justify-content: center; color: white;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.5); z-index: 1000;
             }
-            .top-header img { height: 35px; margin-right: 15px; background: white; padding: 2px; border-radius: 3px; }
 
-            .content-wrapper { display: flex; flex: 1; position: relative; }
+            #header-video {
+                position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%;
+                width: auto; height: auto; transform: translate(-50%, -50%);
+                z-index: -1; filter: brightness(35%); object-fit: cover;
+            }
 
-            /* MAP */
-            #map { flex: 1; background: #e0e0e0; }
+            .header-content { display: flex; align-items: center; width: 95%; justify-content: space-between; z-index: 1; }
+            
+            .logo-politeknik { 
+                height: 85px; 
+                width: auto; 
+                filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
+            }
 
-            /* SIDEBAR RIGHT */
+            .header-title h1 { 
+                margin: 0; 
+                font-size: 24px; 
+                text-transform: uppercase; 
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
+                text-align: right;
+            }
+
+            /* LAYOUT UNTUK PETA & SIDEBAR */
+            .main-wrapper { display: flex; flex: 1; position: relative; overflow: hidden; }
+
+            /* MAP SECTION */
+            #map { flex: 1; background: #f0f0f0; }
+
+            /* SIDEBAR RIGHT SECTION */
             .sidebar {
                 width: 320px;
                 background-color: #1e252d; /* Warna gelap sidebar */
@@ -50,7 +61,7 @@
                 flex-direction: column;
                 padding: 15px;
                 box-shadow: -2px 0 10px rgba(0,0,0,0.3);
-                z-index: 1000;
+                z-index: 999;
                 overflow-y: auto;
             }
 
@@ -60,30 +71,14 @@
             /* INPUT & BUTTONS */
             .control-group { margin-bottom: 20px; }
             input[type="text"] {
-                width: 100%;
-                padding: 10px;
-                background: #2c3e50;
-                border: 1px solid #3e4f5f;
-                color: white;
-                border-radius: 4px;
-                margin-bottom: 10px;
-                box-sizing: border-box;
+                width: 100%; padding: 10px; background: #2c3e50; border: 1px solid #3e4f5f;
+                color: white; border-radius: 4px; margin-bottom: 10px; box-sizing: border-box;
             }
 
             .btn {
-                width: 100%;
-                padding: 12px;
-                border: none;
-                border-radius: 4px;
-                color: white;
-                font-weight: bold;
-                cursor: pointer;
-                margin-bottom: 8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                text-transform: uppercase;
-                font-size: 12px;
+                width: 100%; padding: 12px; border: none; border-radius: 4px; color: white;
+                font-weight: bold; cursor: pointer; margin-bottom: 8px; font-size: 11px;
+                text-transform: uppercase; display: flex; align-items: center; justify-content: center;
             }
             .btn-green { background-color: #27ae60; }
             .btn-red { background-color: #c0392b; }
@@ -91,16 +86,12 @@
             .btn i { margin-right: 8px; }
 
             /* INFO DISPLAY */
+            .info-label { font-size: 10px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; }
             .info-box {
-                background: #161c23;
-                border-radius: 6px;
-                padding: 12px;
-                margin-top: 5px;
-                margin-bottom: 15px;
+                background: #161c23; border-radius: 6px; padding: 12px; margin-top: 4px;
                 border-left: 4px solid #27ae60;
             }
-            .info-label { font-size: 10px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; }
-            .info-value { font-size: 16px; font-weight: bold; color: #2ecc71; margin-top: 2px; }
+            .info-value { font-size: 16px; font-weight: bold; color: #2ecc71; }
 
             #loading-overlay {
                 display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); 
@@ -109,18 +100,24 @@
         </style>
     </head>
     <body>
+        
+        <header>
+            <video autoplay muted loop id="header-video">
+                <source src="https://www.w3schools.com/howto/rain.mp4" type="video/mp4">
+            </video>
+            <div class="header-content">
+                <img src="image_23acf7.jpg" alt="Logo Politeknik Ungku Omar" class="logo-politeknik">
+                <div class="header-title">
+                    <h1>Sistem Peta Lot Tanah<br><span style="font-size: 16px;">Politeknik Ungku Omar</span></h1>
+                </div>
+            </div>
+        </header>
 
-    <div class="main-container">
-        <div class="top-header">
-            <img src="image_23acf7.jpg" alt="Logo"> smart resident
-        </div>
-
-        <div class="content-wrapper">
+        <div class="main-wrapper">
             <div id="map"></div>
 
             <div class="sidebar">
                 <div class="section-title"><i class="fas fa-cog"></i> Tetapan Paparan</div>
-                
                 <div class="section-title"><i class="fas fa-globe"></i> Land Explorer</div>
                 
                 <div class="control-group">
@@ -133,125 +130,103 @@
                 <hr style="border: 0; border-top: 1px solid #34495e; width: 100%; margin: 10px 0;">
 
                 <div class="info-label">Total Lot</div>
-                <div class="info-box"><div class="info-value" id="dispTotal">67</div></div>
+                <div class="info-box"><div class="info-value" id="dispTotal">0</div></div>
 
                 <div class="info-label">No Lot Dipilih</div>
-                <div class="info-box" style="border-left-color: #f1c40f;">
-                    <div class="info-value" id="dispLot">-</div>
-                </div>
+                <div class="info-box" style="border-left-color: #f1c40f;"><div class="info-value" id="dispLot">-</div></div>
 
                 <div class="info-label">Nama Pemilik</div>
-                <div class="info-box">
-                    <div class="info-value" id="dispPemilik" style="color: #3498db;">-</div>
-                </div>
+                <div class="info-box"><div class="info-value" id="dispPemilik" style="color: #3498db;">-</div></div>
 
                 <div class="info-label">Luas Lot</div>
-                <div class="info-box">
-                    <div class="info-value" id="dispLuas">-</div>
-                </div>
+                <div class="info-box"><div class="info-value" id="dispLuas">-</div></div>
             </div>
         </div>
-    </div>
 
-    <div id="loading-overlay">Menjana Laporan PDF...</div>
+        <div id="loading-overlay">Menjana Laporan PDF...</div>
 
-    <script src="js/qgis2web_expressions.js"></script>
-    <script src="js/leaflet.js"></script>
-    <script src="js/L.Control.Layers.Tree.min.js"></script>
-    <script src="js/Autolinker.min.js"></script>
-    <script src="data/LOTFINAL_0.js"></script>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="data/LOTFINAL_0.js"></script>
 
-    <script>
-        var map = L.map('map', { zoomControl: true, maxZoom: 22 }).setView([2.1038, 102.5213], 19);
+        <script>
+            var map = L.map('map', { zoomControl: true, maxZoom: 22 }).setView([2.1038, 102.5213], 19);
 
-        var layer_GoogleSatellite = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-            maxZoom: 22, maxNativeZoom: 20
-        }).addTo(map);
+            var layer_GoogleSatellite = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+                maxZoom: 22, maxNativeZoom: 20
+            }).addTo(map);
 
-        var highlightLayer;
-        window.selectedLotData = null;
-
-        function updateSidebar(props) {
-            if (props) {
-                document.getElementById('dispLot').innerText = props['NO LOT'] || '-';
-                document.getElementById('dispLuas').innerText = (props['AREA'] || props['LUAS'] || '0') + " m²";
-                document.getElementById('dispPemilik').innerText = props['PEMILIK'] || "ALI BIN ABU"; // Contoh data statik jika tiada dalam json
-            } else {
-                document.getElementById('dispLot').innerText = "-";
-                document.getElementById('dispLuas').innerText = "-";
-                document.getElementById('dispPemilik').innerText = "-";
-            }
-        }
-
-        function highlightFeature(e) {
-            if (highlightLayer) { layer_LOTFINAL_0.resetStyle(highlightLayer); }
-            highlightLayer = e.target;
-            highlightLayer.setStyle({ weight: 3, color: '#ff9800', fillOpacity: 0.7, fillColor: '#ff9800' });
-            window.selectedLotData = highlightLayer.feature.properties;
-            updateSidebar(window.selectedLotData);
-        }
-
-        function pop_LOT(feature, layer) {
-            layer.on({
-                click: function(e) { 
-                    highlightFeature(e);
-                    L.DomEvent.stopPropagation(e);
-                }
-            });
-        }
-
-        var layer_LOTFINAL_0 = new L.geoJson(json_LOTFINAL_0, {
-            onEachFeature: pop_LOT,
-            style: { color: '#2ecc71', weight: 1, fillColor: '#2ecc71', fillOpacity: 0.4 }
-        }).addTo(map);
-
-        // Update Total Lot count automatically
-        document.getElementById('dispTotal').innerText = json_LOTFINAL_0.features.length;
-
-        function cariLot() {
-            var val = document.getElementById('inputLot').value.trim();
-            var found = false;
-            layer_LOTFINAL_0.eachLayer(function(layer) {
-                if (layer.feature.properties['NO LOT'] == val) {
-                    map.fitBounds(layer.getBounds());
-                    highlightFeature({target: layer});
-                    found = true;
-                }
-            });
-            if (!found) alert("No Lot tidak dijumpai!");
-        }
-
-        function resetPeta() {
-            document.getElementById('inputLot').value = "";
-            map.setView([2.1038, 102.5213], 19);
-            if (highlightLayer) layer_LOTFINAL_0.resetStyle(highlightLayer);
+            var highlightLayer;
             window.selectedLotData = null;
-            updateSidebar(null);
-        }
 
-        async function cetakPDF() {
-            if (!window.selectedLotData) { alert("Pilih lot dalam peta atau cari No Lot dahulu!"); return; }
-            document.getElementById('loading-overlay').style.display = 'block';
-            
-            const mapCanvas = await html2canvas(document.getElementById('map'), { useCORS: true });
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            doc.setFillColor(27, 77, 36);
-            doc.rect(0, 0, 210, 20, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.text("SMART RESIDENT - LAPORAN LOT", 105, 13, {align: 'center'});
-            
-            doc.setTextColor(0, 0, 0);
-            doc.setFontSize(12);
-            doc.text("NO LOT: " + window.selectedLotData['NO LOT'], 20, 40);
-            doc.text("PEMILIK: " + (window.selectedLotData['PEMILIK'] || "ALI BIN ABU"), 20, 50);
-            doc.text("LUAS: " + (window.selectedLotData['AREA'] || "N/A") + " m²", 20, 60);
-            
-            doc.addImage(mapCanvas.toDataURL('image/png'), 'PNG', 20, 75, 170, 100);
-            doc.save("Laporan_Lot_" + window.selectedLotData['NO LOT'] + ".pdf");
-            document.getElementById('loading-overlay').style.display = 'none';
-        }
-    </script>
+            function updateSidebar(props) {
+                if (props) {
+                    document.getElementById('dispLot').innerText = props['NO LOT'] || '-';
+                    document.getElementById('dispLuas').innerText = (props['AREA'] || props['LUAS'] || '0') + " m²";
+                    document.getElementById('dispPemilik').innerText = props['PEMILIK'] || "ALI BIN ABU";
+                } else {
+                    document.getElementById('dispLot').innerText = "-";
+                    document.getElementById('dispLuas').innerText = "-";
+                    document.getElementById('dispPemilik').innerText = "-";
+                }
+            }
+
+            function highlightFeature(e) {
+                if (highlightLayer) { layer_LOTFINAL_0.resetStyle(highlightLayer); }
+                highlightLayer = e.target;
+                highlightLayer.setStyle({ weight: 4, color: '#ffff00', fillOpacity: 0.6 });
+                window.selectedLotData = highlightLayer.feature.properties;
+                updateSidebar(window.selectedLotData);
+            }
+
+            var layer_LOTFINAL_0 = new L.geoJson(json_LOTFINAL_0, {
+                onEachFeature: function(feature, layer) {
+                    layer.on({
+                        click: function(e) {
+                            highlightFeature(e);
+                            L.DomEvent.stopPropagation(e);
+                        }
+                    });
+                },
+                style: { color: 'white', weight: 1.5, fillColor: '#85b66f', fillOpacity: 0.3 }
+            }).addTo(map);
+
+            document.getElementById('dispTotal').innerText = json_LOTFINAL_0.features.length;
+
+            function cariLot() {
+                var val = document.getElementById('inputLot').value.trim();
+                var found = false;
+                layer_LOTFINAL_0.eachLayer(function(layer) {
+                    if (layer.feature.properties['NO LOT'] == val) {
+                        map.fitBounds(layer.getBounds());
+                        highlightFeature({target: layer});
+                        found = true;
+                    }
+                });
+                if (!found) alert("No Lot tidak dijumpai!");
+            }
+
+            function resetPeta() {
+                document.getElementById('inputLot').value = "";
+                map.setView([2.1038, 102.5213], 19);
+                if (highlightLayer) layer_LOTFINAL_0.resetStyle(highlightLayer);
+                window.selectedLotData = null;
+                updateSidebar(null);
+            }
+
+            async function cetakPDF() {
+                if (!window.selectedLotData) { alert("Pilih lot dalam peta atau cari No Lot dahulu!"); return; }
+                document.getElementById('loading-overlay').style.display = 'block';
+                const mapCanvas = await html2canvas(document.getElementById('map'), { useCORS: true });
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                doc.text("LAPORAN LOT TANAH", 105, 20, {align: 'center'});
+                doc.text("No Lot: " + window.selectedLotData['NO LOT'], 20, 40);
+                doc.addImage(mapCanvas.toDataURL('image/png'), 'PNG', 20, 60, 170, 100);
+                doc.save("Laporan_" + window.selectedLotData['NO LOT'] + ".pdf");
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
+        </script>
     </body>
 </html>
