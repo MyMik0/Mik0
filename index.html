@@ -140,7 +140,7 @@
             </div>
         </div>
 
-        <div id="loading-overlay">Menjana Laporan PDF...</div>
+        <div id="loading-overlay">Menjana Laporan PDF HD...</div>
 
         <script src="js/qgis2web_expressions.js"></script>
         <script src="js/leaflet.js"></script>
@@ -148,13 +148,12 @@
         <script src="data/LOTFINAL_0.js"></script>
 
         <script>
-            // 1. Laraskan koordinat permulaan (Pusat kawasan perumahan)
+            // 1. Inisialisasi Peta
             var map = L.map('map', { 
                 zoomControl: true, 
                 maxZoom: 22 
             }).setView([2.10375, 102.52125], 19); 
 
-            // 2. Gunakan Google Satellite yang lebih stabil
             var layer_GoogleSatellite = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
                 maxZoom: 22, 
                 maxNativeZoom: 20,
@@ -164,7 +163,6 @@
             var highlightLayer;
             window.selectedLotData = null;
 
-            // --- FUNGSI UPDATE SIDEBAR ---
             function updateSidebar(props) {
                 if (props) {
                     document.getElementById('dispLot').innerText = props['NO LOT'] || '-';
@@ -177,7 +175,6 @@
                 }
             }
 
-            // --- FUNGSI HIGHLIGHT ---
             function highlightFeature(e) {
                 if (highlightLayer) { layer_LOTFINAL_0.resetStyle(highlightLayer); }
                 highlightLayer = e.target;
@@ -191,12 +188,10 @@
                 updateSidebar(window.selectedLotData);
             }
 
-            // Susun data JSON supaya No Lot mengikut turutan
             json_LOTFINAL_0.features.sort(function(a, b) {
                 return parseFloat(a.properties['NO LOT']) - parseFloat(b.properties['NO LOT']);
             });
 
-            // --- LOAD DATA LOT ---
             var layer_LOTFINAL_0 = new L.geoJson(json_LOTFINAL_0, {
                 onEachFeature: function(feature, layer) {
                     layer.on({
@@ -207,21 +202,19 @@
                     });
                 },
                 style: { 
-                    color: '#ffffff', // Sempadan putih supaya nampak jelas atas satelit
+                    color: '#ffffff', 
                     weight: 1, 
                     fillColor: '#32cd32', 
                     fillOpacity: 0.3 
                 }
             }).addTo(map);
 
-            // Automatik zoom ke kawasan lot sebaik sahaja aplikasi dibuka
             if (json_LOTFINAL_0.features.length > 0) {
                 map.fitBounds(layer_LOTFINAL_0.getBounds());
             }
 
             document.getElementById('dispTotal').innerText = json_LOTFINAL_0.features.length;
 
-            // --- FUNGSI CARI LOT ---
             function cariLot() {
                 var val = document.getElementById('inputLot').value.trim();
                 var found = false;
@@ -235,7 +228,6 @@
                 if (!found) alert("No Lot tidak dijumpai!");
             }
 
-            // --- FUNGSI RESET ---
             function resetPeta() {
                 document.getElementById('inputLot').value = "";
                 map.setView([2.10375, 102.52125], 19);
@@ -244,60 +236,92 @@
                 updateSidebar(null);
             }
 
-            // --- FUNGSI CETAK PDF ---
+            // --- FUNGSI CETAK PDF (VERSI TERBAIK/BETUL) ---
             async function cetakPDF() {
-                if (!window.selectedLotData) { alert("Pilih lot dahulu!"); return; }
+                if (!window.selectedLotData) { 
+                    alert("Sila pilih lot di atas peta terlebih dahulu!"); 
+                    return; 
+                }
+                
                 document.getElementById('loading-overlay').style.display = 'block';
 
-                const mapCanvas = await html2canvas(document.getElementById('map'), { useCORS: true });
+                // Gunakan scale: 2 untuk memastikan gambar peta dalam PDF tajam (HD)
+                const mapElement = document.getElementById('map');
+                const mapCanvas = await html2canvas(mapElement, {
+                    useCORS: true,
+                    scale: 2, 
+                    logging: false
+                });
+
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF('l', 'mm', 'a4'); 
 
+                // --- DESIGN HEADER ---
+                doc.setFillColor(30, 37, 45); 
+                doc.rect(0, 0, 297, 40, 'F'); 
+                
+                doc.setTextColor(255, 255, 255);
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(22);
-                doc.text("LAPORAN MAKLUMAT LOT", 148.5, 25, { align: 'center' });
+                doc.text("LAPORAN MAKLUMAT LOT TANAH", 148.5, 18, { align: 'center' });
                 
                 doc.setFontSize(10);
-                doc.setFont("helvetica", "normal");
-                doc.text("Dijana secara automatik melalui Land Explorer", 148.5, 32, { align: 'center' });
+                doc.setFont("helvetica", "italic");
+                doc.text("Dijana melalui Sistem Smart Resident PUO", 148.5, 26, { align: 'center' });
                 
-                doc.setLineWidth(0.5);
-                doc.line(20, 38, 277, 38);
+                // Tambah Tarikh Cetakan
+                const tarikh = new Date().toLocaleString('ms-MY');
+                doc.setFontSize(8);
+                doc.setFont("helvetica", "normal");
+                doc.text("Tarikh Cetakan: " + tarikh, 20, 35);
 
-                let startY = 50;
+                // --- DATA LOT (BAHAGIAN KIRI) ---
+                let startY = 60;
                 const leftX = 20;
+                doc.setTextColor(0, 0, 0);
 
                 const drawField = (label, value) => {
-                    doc.setFontSize(8);
+                    doc.setFontSize(9);
+                    doc.setFont("helvetica", "bold");
                     doc.setTextColor(100, 100, 100);
-                    doc.setFont("helvetica", "normal");
                     doc.text(label, leftX, startY);
                     
-                    doc.setFontSize(11);
-                    doc.setTextColor(30, 40, 50);
+                    doc.setFontSize(12);
                     doc.setFont("helvetica", "bold");
-                    doc.text(value.toString(), leftX, startY + 6);
+                    doc.setTextColor(40, 40, 40);
+                    doc.text(value.toString(), leftX, startY + 7);
                     
-                    doc.setDrawColor(230, 230, 230);
-                    doc.line(leftX, startY + 8, 90, startY + 8);
-                    startY += 18;
+                    doc.setDrawColor(200, 200, 200);
+                    doc.setLineWidth(0.1);
+                    doc.line(leftX, startY + 10, 95, startY + 10);
+                    startY += 20;
                 };
 
-                drawField("NO LOT DIPILIH", window.selectedLotData['NO LOT'] || "-");
-                drawField("NAMA PEMILIK", window.selectedLotData['PEMILIK'] || "N/A");
-                drawField("LUAS LOT (AREA)", (window.selectedLotData['AREA'] || window.selectedLotData['LUAS'] || "0") + " m²");
-                drawField("KATEGORI / KEGUNAAN", window.selectedLotData['KEGUNAAN'] || "KEDIAMAN");
-                drawField("MAKLUMAT TAMBAHAN", "SISTEM PINTAR PUO");
+                drawField("NOMBOR LOT", window.selectedLotData['NO LOT'] || "-");
+                drawField("NAMA PEMILIK", window.selectedLotData['PEMILIK'] || "TIADA MAKLUMAT");
+                drawField("LUAS KAWASAN", (window.selectedLotData['AREA'] || window.selectedLotData['LUAS'] || "0") + " m²");
+                drawField("KEGUNAAN", window.selectedLotData['KEGUNAAN'] || "KEDIAMAN");
+                drawField("STATUS DATA", "SAH / AKTIF");
 
-                const imgWidth = 160;
-                const imgHeight = 110;
-                doc.addImage(mapCanvas.toDataURL('image/png'), 'PNG', 105, 50, imgWidth, imgHeight);
+                // --- GAMBAR PETA (BAHAGIAN KANAN) ---
+                const imgWidth = 170;
+                const imgHeight = 120;
+                
+                // Bingkai Peta
+                doc.setDrawColor(30, 37, 45);
+                doc.setLineWidth(1);
+                doc.rect(105, 55, imgWidth, imgHeight); 
+                
+                // Masukkan Gambar Peta
+                doc.addImage(mapCanvas.toDataURL('image/png'), 'PNG', 105, 55, imgWidth, imgHeight);
 
-                doc.setDrawColor(0, 0, 0);
-                doc.setLineWidth(0.2);
-                doc.rect(105, 50, imgWidth, imgHeight);
+                // Footer
+                doc.setFontSize(8);
+                doc.setTextColor(150, 150, 150);
+                doc.text("Dokumen ini adalah cetakan sistem pintar dan tidak memerlukan tandatangan fizikal.", 148.5, 195, { align: 'center' });
 
-                doc.save("Laporan_Lot_" + window.selectedLotData['NO LOT'] + ".pdf");
+                // Muat Turun Fail
+                doc.save("Laporan_Lot_" + (window.selectedLotData['NO LOT'] || "PUO") + ".pdf");
                 document.getElementById('loading-overlay').style.display = 'none';
             }
         </script>
