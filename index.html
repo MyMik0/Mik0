@@ -4,8 +4,8 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
-        <meta name="mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-capable" content="yes">
+        <title>Peta Interaktif - Full Features</title>
+        
         <link rel="stylesheet" href="css/leaflet.css">
         <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
         <link rel="stylesheet" href="css/qgis2web.css">
@@ -18,39 +18,38 @@
 
         <style>
         html, body, #map {
-            width: 100%;
-            height: 100%;
-            padding: 0;
-            margin: 0;
+            width: 100%; height: 100%; padding: 0; margin: 0;
         }
         
-        /* Style Panel Kawalan Kanan */
+        /* Style Panel Kawalan */
         .peta-control-panel {
             background: white;
             padding: 12px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
             width: 200px;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        .peta-control-panel h4 { margin: 0 0 10px 0; font-size: 14px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
-        .peta-control-panel input { width: 100%; padding: 6px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .peta-control-panel h4 { margin: 0 0 10px 0; font-size: 14px; border-bottom: 1px solid #ddd; padding-bottom: 5px; color: #333; }
+        .peta-control-panel input { width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         .peta-control-panel button { 
-            width: 100%; padding: 7px; margin-bottom: 5px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; color: white;
+            width: 100%; padding: 8px; margin-bottom: 5px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; color: white; transition: 0.2s;
         }
         .btn-cari { background: #28a745; }
+        .btn-cari:hover { background: #218838; }
         .btn-reset { background: #6c757d; }
+        .btn-reset:hover { background: #5a6268; }
         .btn-pdf { background: #d9534f; }
+        .btn-pdf:hover { background: #c9302c; }
         
         #loading-overlay {
-            display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); 
-            z-index: 9999; color:white; text-align:center; padding-top:20%; font-size: 20px;
+            display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); 
+            z-index: 9999; color:white; text-align:center; padding-top:20%; font-size: 20px; font-family: sans-serif;
         }
         </style>
-        <title>Peta Interaktif - Full Integrated</title>
     </head>
     <body>
-        <div id="loading-overlay">Sedang menjana laporan PDF...</div>
+        <div id="loading-overlay">Sila Tunggu... Menjana Laporan PDF</div>
         <div id="map"></div>
 
         <script src="js/qgis2web_expressions.js"></script>
@@ -65,86 +64,79 @@
         <script src="js/labels.js"></script>
         <script src="js/leaflet.photon.js"></script>
         <script src="js/leaflet-search.js"></script>
+        
         <script src="data/LOTFINAL_0.js"></script>
         <script src="data/TANDASEMPADANCAMPUR_1.js"></script>
 
         <script>
-        var highlightLayer;
-        window.selectedLotData = null; // Simpan data untuk PDF
+        var map = L.map('map', {
+            zoomControl: false, 
+            maxZoom: 28, 
+            minZoom: 1
+        }).fitBounds([[2.10377, 102.5212], [2.10394, 102.5215]]);
 
+        var highlightLayer;
+        window.selectedLotData = null;
+
+        // --- FUNGSI HIGHLIGHT ---
         function highlightFeature(e) {
+            if (highlightLayer) {
+                layer_LOTFINAL_0.resetStyle(highlightLayer);
+            }
             highlightLayer = e.target;
-            highlightLayer.openPopup();
+            highlightLayer.setStyle({
+                weight: 4,
+                color: '#ffff00',
+                fillOpacity: 0.7
+            });
             window.selectedLotData = highlightLayer.feature.properties;
         }
 
-        var map = L.map('map', {
-            zoomControl:false, maxZoom:28, minZoom:1
-        }).fitBounds([[2.1037736019943134,102.52127453712016],[2.103942975429596,102.52154860320705]]);
-
-        var hash = new L.Hash(map);
-        map.attributionControl.setPrefix('Leaflet &middot; QGIS2Web');
-
         // --- BASE LAYERS ---
         var layer_GoogleSatellite = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-            opacity: 1.0, attribution: '© Google Satellite', maxZoom: 28
-        });
-        var layer_GoogleLabels = L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', {
-            opacity: 1.0, attribution: '© Google Hybrid', maxZoom: 28
-        });
+            opacity: 1.0, attribution: 'Google Satellite'
+        }).addTo(map);
+
         var layer_OSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            opacity: 1.0, attribution: '© OSM', maxZoom: 28
+            opacity: 1.0, attribution: 'OpenStreetMap'
         });
 
-        map.addLayer(layer_GoogleSatellite);
-
-        // --- STREET VIEW CONTEXT MENU ---
-        map.on('contextmenu', function(e) {
-            var lat = e.latlng.lat;
-            var lng = e.latlng.lng;
-            window.open(`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`, '_blank');
-        });
-
-        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
-
-        // --- DATA LAYERS ---
-        function pop_LOTFINAL_0(feature, layer) {
+        // --- LAYER DATA LOT ---
+        function pop_LOT(feature, layer) {
+            var popupContent = '<b>NO LOT:</b> ' + feature.properties['NO LOT'] + '<br>' +
+                               '<b>AREA:</b> ' + feature.properties['AREA'] + '<br>' +
+                               '<b>FID:</b> ' + feature.properties['fid'];
+            layer.bindPopup(popupContent);
+            
             layer.on({
-                mouseout: function(e) { if (typeof layer.closePopup == 'function') { layer.closePopup(); } },
-                mouseover: highlightFeature,
-                click: function(e) { window.selectedLotData = feature.properties; }
+                click: function(e) {
+                    highlightFeature(e);
+                    layer.openPopup();
+                }
             });
-            var popupContent = '<table>\
-                    <tr><td colspan="2"><b>FID:</b> ' + (feature.properties['fid'] !== null ? autolinker.link(feature.properties['fid'].toLocaleString()) : '') + '</td></tr>\
-                    <tr><td colspan="2"><b>NO LOT:</b> ' + (feature.properties['NO LOT'] !== null ? autolinker.link(feature.properties['NO LOT'].toLocaleString()) : '') + '</td></tr>\
-                    <tr><td colspan="2"><b>AREA:</b> ' + (feature.properties['AREA'] !== null ? autolinker.link(feature.properties['AREA'].toLocaleString()) : '') + '</td></tr>\
-                </table>';
-            layer.bindPopup(popupContent, { maxHeight: 400 });
         }
 
         var layer_LOTFINAL_0 = new L.geoJson(json_LOTFINAL_0, {
-            onEachFeature: pop_LOTFINAL_0,
-            style: { color: 'rgba(255,255,255,1.0)', weight: 2.0, fillOpacity: 0.4, fillColor: 'rgba(133,182,111,1.0)' }
-        });
-        map.addLayer(layer_LOTFINAL_0);
+            onEachFeature: pop_LOT,
+            style: {
+                color: 'white',
+                weight: 2,
+                fillColor: '#85b66f',
+                fillOpacity: 0.4
+            }
+        }).addTo(map);
 
-        // --- LAYER CONTROL ---
-        var baseLayers = { "Satelit": layer_GoogleSatellite, "Hybrid": layer_GoogleLabels, "OSM": layer_OSM };
-        var overlays = { "LOT FINAL": layer_LOTFINAL_0 };
-        L.control.layers(baseLayers, overlays).addTo(map);
-        L.control.zoom({ position: 'topleft' }).addTo(map);
-
-        // --- PANEL KAWALAN CUSTOM (Carian, Reset, PDF) ---
+        // --- CONTROL PANEL ---
         var customControl = L.Control.extend({
             options: { position: 'topright' },
             onAdd: function (map) {
                 var div = L.DomUtil.create('div', 'peta-control-panel');
                 div.innerHTML = `
-                    <h4>MENU CARIAN</h4>
-                    <input type="text" id="inputLot" placeholder="No Lot...">
-                    <button class="btn-cari" onclick="cariLot()">CARI</button>
+                    <h4>Carian & Laporan</h4>
+                    <input type="text" id="inputLot" placeholder="Masukkan No Lot...">
+                    <button class="btn-cari" onclick="cariLot()">CARI LOT</button>
                     <button class="btn-reset" onclick="resetPeta()">RESET</button>
-                    <button class="btn-pdf" onclick="cetakPDF()">EKSPORT PDF</button>
+                    <button class="btn-pdf" onclick="cetakPDF()">CETAK PDF</button>
                 `;
                 L.DomEvent.disableClickPropagation(div);
                 return div;
@@ -152,7 +144,7 @@
         });
         map.addControl(new customControl());
 
-        // --- FUNGSI LOGIK ---
+        // --- LOGIK BUTTON ---
         function cariLot() {
             var val = document.getElementById('inputLot').value.trim();
             var found = false;
@@ -160,29 +152,29 @@
                 if (layer.feature.properties['NO LOT'] == val) {
                     map.fitBounds(layer.getBounds());
                     layer.openPopup();
-                    window.selectedLotData = layer.feature.properties;
+                    highlightFeature({target: layer});
                     found = true;
                 }
             });
-            if(!found) alert("No Lot tidak dijumpai!");
+            if (!found) alert("No Lot " + val + " tidak dijumpai!");
         }
 
         function resetPeta() {
             document.getElementById('inputLot').value = "";
             map.fitBounds(layer_LOTFINAL_0.getBounds());
+            if (highlightLayer) layer_LOTFINAL_0.resetStyle(highlightLayer);
             map.closePopup();
             window.selectedLotData = null;
         }
 
         async function cetakPDF() {
             if (!window.selectedLotData) {
-                alert("Sila cari atau klik satu lot terlebih dahulu!");
+                alert("Sila klik pada satu lot di peta terlebih dahulu!");
                 return;
             }
             
             document.getElementById('loading-overlay').style.display = 'block';
             
-            // Tangkap gambar peta
             const mapCanvas = await html2canvas(document.getElementById('map'), {
                 useCORS: true,
                 ignoreElements: (el) => el.classList.contains('peta-control-panel') || el.classList.contains('leaflet-control-zoom')
@@ -192,27 +184,26 @@
             const doc = new jsPDF();
             const d = window.selectedLotData;
 
-            doc.setFontSize(18);
-            doc.text("LAPORAN MAKLUMAT LOT", 105, 20, {align: 'center'});
-            
-            doc.setFontSize(12);
-            doc.text(`Tarikh: ${new Date().toLocaleDateString()}`, 20, 35);
-            doc.line(20, 38, 190, 38);
-
-            doc.text(`NO LOT: ${d['NO LOT']}`, 20, 50);
-            doc.text(`AREA  : ${d['AREA']}`, 20, 60);
-            doc.text(`FID   : ${d['fid']}`, 20, 70);
-
-            // Masukkan gambar peta ke PDF
-            const imgData = mapCanvas.toDataURL('image/png');
-            doc.addImage(imgData, 'PNG', 20, 80, 170, 100);
+            doc.setFontSize(16);
+            doc.text("LAPORAN MAKLUMAT LOT TANAH", 105, 20, {align: 'center'});
             
             doc.setFontSize(10);
-            doc.text("Dijana melalui Sistem Peta Interaktif Lot Tanah.", 105, 190, {align: 'center'});
+            doc.text("Tarikh: " + new Date().toLocaleString(), 20, 30);
+            doc.line(20, 32, 190, 32);
 
-            doc.save(`Laporan_Lot_${d['NO LOT']}.pdf`);
+            doc.text("NO LOT : " + d['NO LOT'], 20, 45);
+            doc.text("AREA   : " + d['AREA'], 20, 55);
+            doc.text("FID    : " + d['fid'], 20, 65);
+
+            const imgData = mapCanvas.toDataURL('image/png');
+            doc.addImage(imgData, 'PNG', 20, 75, 170, 100);
+            
+            doc.save("Laporan_Lot_" + d['NO LOT'] + ".pdf");
             document.getElementById('loading-overlay').style.display = 'none';
         }
+
+        // Zoom Control di kiri
+        L.control.zoom({ position: 'topleft' }).addTo(map);
 
         </script>
     </body>
