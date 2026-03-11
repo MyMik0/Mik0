@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
-        <title>Peta Interaktif - Full Features</title>
+        <title>Sistem Peta Interaktif - Politeknik</title>
         
         <link rel="stylesheet" href="css/leaflet.css">
         <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
@@ -17,18 +17,66 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
         <style>
-        html, body, #map {
-            width: 100%; height: 100%; padding: 0; margin: 0;
+        html, body {
+            height: 100%; margin: 0; padding: 0;
+            display: flex; flex-direction: column; /* Susun header di atas, peta di bawah */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* --- HEADER SECTION --- */
+        header {
+            position: relative;
+            height: 120px; /* Ketinggian header */
+            width: 100%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        /* Video Background Header */
+        #header-video {
+            position: absolute;
+            top: 50%; left: 50%;
+            min-width: 100%; min-height: 100%;
+            width: auto; height: auto;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            filter: brightness(50%); /* Gelapkan sikit video supaya teks nampak jelas */
+            object-fit: cover;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            width: 95%;
+            justify-content: space-between;
+            z-index: 1;
+        }
+
+        .logo-politeknik {
+            height: 80px; /* Saiz logo */
+            width: auto;
+        }
+
+        .header-title h1 {
+            margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+        }
+
+        /* --- MAP SECTION --- */
+        #map {
+            flex-grow: 1; /* Peta akan ambil baki ruang skrin */
+            width: 100%;
         }
         
         /* Style Panel Kawalan */
         .peta-control-panel {
-            background: white;
-            padding: 12px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            width: 200px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: white; padding: 12px; border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3); width: 200px;
         }
         .peta-control-panel h4 { margin: 0 0 10px 0; font-size: 14px; border-bottom: 1px solid #ddd; padding-bottom: 5px; color: #333; }
         .peta-control-panel input { width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
@@ -36,19 +84,33 @@
             width: 100%; padding: 8px; margin-bottom: 5px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; color: white; transition: 0.2s;
         }
         .btn-cari { background: #28a745; }
-        .btn-cari:hover { background: #218838; }
         .btn-reset { background: #6c757d; }
-        .btn-reset:hover { background: #5a6268; }
         .btn-pdf { background: #d9534f; }
-        .btn-pdf:hover { background: #c9302c; }
         
         #loading-overlay {
             display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); 
-            z-index: 9999; color:white; text-align:center; padding-top:20%; font-size: 20px; font-family: sans-serif;
+            z-index: 9999; color:white; text-align:center; padding-top:20%; font-size: 20px;
         }
         </style>
     </head>
     <body>
+        
+        <header>
+            <video autoplay muted loop id="header-video">
+                <source src="https://www.w3schools.com/howto/rain.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+
+            <div class="header-content">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Logo_Politeknik_Malaysia.png" alt="Logo Politeknik" class="logo-politeknik">
+                
+                <div class="header-title">
+                    <h1>Sistem Maklumat Geografi Lot Tanah</h1>
+                </div>
+
+                <div style="width: 80px;"></div> </div>
+        </header>
+
         <div id="loading-overlay">Sila Tunggu... Menjana Laporan PDF</div>
         <div id="map"></div>
 
@@ -69,6 +131,7 @@
         <script src="data/TANDASEMPADANCAMPUR_1.js"></script>
 
         <script>
+        // Inisialisasi Peta
         var map = L.map('map', {
             zoomControl: false, 
             maxZoom: 28, 
@@ -97,10 +160,6 @@
             opacity: 1.0, attribution: 'Google Satellite'
         }).addTo(map);
 
-        var layer_OSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            opacity: 1.0, attribution: 'OpenStreetMap'
-        });
-
         // --- LAYER DATA LOT ---
         function pop_LOT(feature, layer) {
             var popupContent = '<b>NO LOT:</b> ' + feature.properties['NO LOT'] + '<br>' +
@@ -119,21 +178,18 @@
         var layer_LOTFINAL_0 = new L.geoJson(json_LOTFINAL_0, {
             onEachFeature: pop_LOT,
             style: {
-                color: 'white',
-                weight: 2,
-                fillColor: '#85b66f',
-                fillOpacity: 0.4
+                color: 'white', weight: 2, fillColor: '#85b66f', fillOpacity: 0.4
             }
         }).addTo(map);
 
-        // --- CONTROL PANEL ---
+        // --- CONTROL PANEL (TOP RIGHT) ---
         var customControl = L.Control.extend({
             options: { position: 'topright' },
             onAdd: function (map) {
                 var div = L.DomUtil.create('div', 'peta-control-panel');
                 div.innerHTML = `
-                    <h4>Carian & Laporan</h4>
-                    <input type="text" id="inputLot" placeholder="Masukkan No Lot...">
+                    <h4>Menu Kawalan</h4>
+                    <input type="text" id="inputLot" placeholder="No Lot...">
                     <button class="btn-cari" onclick="cariLot()">CARI LOT</button>
                     <button class="btn-reset" onclick="resetPeta()">RESET</button>
                     <button class="btn-pdf" onclick="cetakPDF()">CETAK PDF</button>
@@ -144,7 +200,7 @@
         });
         map.addControl(new customControl());
 
-        // --- LOGIK BUTTON ---
+        // --- LOGIK BUTTONS ---
         function cariLot() {
             var val = document.getElementById('inputLot').value.trim();
             var found = false;
@@ -169,40 +225,28 @@
 
         async function cetakPDF() {
             if (!window.selectedLotData) {
-                alert("Sila klik pada satu lot di peta terlebih dahulu!");
+                alert("Sila pilih lot di peta!");
                 return;
             }
-            
             document.getElementById('loading-overlay').style.display = 'block';
-            
             const mapCanvas = await html2canvas(document.getElementById('map'), {
                 useCORS: true,
                 ignoreElements: (el) => el.classList.contains('peta-control-panel') || el.classList.contains('leaflet-control-zoom')
             });
-
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             const d = window.selectedLotData;
-
             doc.setFontSize(16);
             doc.text("LAPORAN MAKLUMAT LOT TANAH", 105, 20, {align: 'center'});
-            
             doc.setFontSize(10);
             doc.text("Tarikh: " + new Date().toLocaleString(), 20, 30);
-            doc.line(20, 32, 190, 32);
-
             doc.text("NO LOT : " + d['NO LOT'], 20, 45);
             doc.text("AREA   : " + d['AREA'], 20, 55);
-            doc.text("FID    : " + d['fid'], 20, 65);
-
-            const imgData = mapCanvas.toDataURL('image/png');
-            doc.addImage(imgData, 'PNG', 20, 75, 170, 100);
-            
-            doc.save("Laporan_Lot_" + d['NO LOT'] + ".pdf");
+            doc.addImage(mapCanvas.toDataURL('image/png'), 'PNG', 20, 70, 170, 100);
+            doc.save("Laporan_" + d['NO LOT'] + ".pdf");
             document.getElementById('loading-overlay').style.display = 'none';
         }
 
-        // Zoom Control di kiri
         L.control.zoom({ position: 'topleft' }).addTo(map);
 
         </script>
