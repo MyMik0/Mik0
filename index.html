@@ -177,13 +177,11 @@
                 updateSidebar(window.selectedLotData);
             }
 
-            // --- KEMASKINI PENYUSUNAN DATA ---
-            // 1. Susun data JSON supaya No Lot mengikut turutan
+            // Susun data JSON supaya No Lot mengikut turutan
             json_LOTFINAL_0.features.sort(function(a, b) {
                 return parseFloat(a.properties['NO LOT']) - parseFloat(b.properties['NO LOT']);
             });
 
-            // 2. Masukkan data yang telah disusun ke dalam layer peta
             var layer_LOTFINAL_0 = new L.geoJson(json_LOTFINAL_0, {
                 onEachFeature: function(feature, layer) {
                     layer.on({
@@ -222,13 +220,65 @@
             async function cetakPDF() {
                 if (!window.selectedLotData) { alert("Pilih lot dahulu!"); return; }
                 document.getElementById('loading-overlay').style.display = 'block';
+
+                // Ambil snapshot peta
                 const mapCanvas = await html2canvas(document.getElementById('map'), { useCORS: true });
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                doc.text("LAPORAN LOT TANAH", 105, 20, {align: 'center'});
-                doc.text("No Lot: " + window.selectedLotData['NO LOT'], 20, 40);
-                doc.addImage(mapCanvas.toDataURL('image/png'), 'PNG', 20, 60, 170, 100);
-                doc.save("Laporan_" + window.selectedLotData['NO LOT'] + ".pdf");
+                const doc = new jsPDF('l', 'mm', 'a4'); // Format Landscape (Melintang)
+
+                // --- HEADER ---
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(22);
+                doc.text("LAPORAN MAKLUMAT LOT", 148.5, 25, { align: 'center' });
+                
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "normal");
+                doc.text("Dijana secara automatik melalui Land Explorer", 148.5, 32, { align: 'center' });
+                
+                // Garisan Pemisah
+                doc.setLineWidth(0.5);
+                doc.line(20, 38, 277, 38);
+
+                // --- DATA (SEBELAH KIRI) ---
+                let startY = 50;
+                const leftX = 20;
+
+                const drawField = (label, value) => {
+                    doc.setFontSize(8);
+                    doc.setTextColor(100, 100, 100);
+                    doc.setFont("helvetica", "normal");
+                    doc.text(label, leftX, startY);
+                    
+                    doc.setFontSize(11);
+                    doc.setTextColor(30, 40, 50);
+                    doc.setFont("helvetica", "bold");
+                    doc.text(value.toString(), leftX, startY + 6);
+                    
+                    // Garisan bawah setiap field
+                    doc.setDrawColor(230, 230, 230);
+                    doc.line(leftX, startY + 8, 90, startY + 8);
+                    startY += 18;
+                };
+
+                drawField("NO LOT DIPILIH", window.selectedLotData['NO LOT'] || "-");
+                drawField("NAMA PEMILIK", window.selectedLotData['PEMILIK'] || "N/A");
+                drawField("LUAS LOT (AREA)", (window.selectedLotData['AREA'] || window.selectedLotData['LUAS'] || "0") + " m²");
+                drawField("KATEGORI / KEGUNAAN", window.selectedLotData['KEGUNAAN'] || "KEDIAMAN");
+                drawField("MAKLUMAT TAMBAHAN", "SISTEM PINTAR PUO");
+
+                // --- GAMBAR PETA (SEBELAH KANAN) ---
+                // Saiz petak peta dalam PDF
+                const imgWidth = 160;
+                const imgHeight = 110;
+                doc.addImage(mapCanvas.toDataURL('image/png'), 'PNG', 105, 50, imgWidth, imgHeight);
+
+                // Frame untuk peta
+                doc.setDrawColor(0, 0, 0);
+                doc.setLineWidth(0.2);
+                doc.rect(105, 50, imgWidth, imgHeight);
+
+                // Simpan Fail
+                doc.save("Laporan_Lot_" + window.selectedLotData['NO LOT'] + ".pdf");
                 document.getElementById('loading-overlay').style.display = 'none';
             }
         </script>
