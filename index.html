@@ -148,15 +148,23 @@
         <script src="data/LOTFINAL_0.js"></script>
 
         <script>
-            var map = L.map('map', { zoomControl: true, maxZoom: 22 }).setView([2.1038, 102.5213], 19);
+            // 1. Laraskan koordinat permulaan (Pusat kawasan perumahan)
+            var map = L.map('map', { 
+                zoomControl: true, 
+                maxZoom: 22 
+            }).setView([2.10375, 102.52125], 19); 
 
+            // 2. Gunakan Google Satellite yang lebih stabil
             var layer_GoogleSatellite = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-                maxZoom: 22, maxNativeZoom: 20
+                maxZoom: 22, 
+                maxNativeZoom: 20,
+                attribution: 'Google Satellite'
             }).addTo(map);
 
             var highlightLayer;
             window.selectedLotData = null;
 
+            // --- FUNGSI UPDATE SIDEBAR ---
             function updateSidebar(props) {
                 if (props) {
                     document.getElementById('dispLot').innerText = props['NO LOT'] || '-';
@@ -169,10 +177,16 @@
                 }
             }
 
+            // --- FUNGSI HIGHLIGHT ---
             function highlightFeature(e) {
                 if (highlightLayer) { layer_LOTFINAL_0.resetStyle(highlightLayer); }
                 highlightLayer = e.target;
-                highlightLayer.setStyle({ weight: 4, color: '#ffff00', fillOpacity: 0.6 });
+                highlightLayer.setStyle({ 
+                    weight: 3, 
+                    color: '#ffff00', 
+                    fillOpacity: 0.4,
+                    fillColor: '#ffff00' 
+                });
                 window.selectedLotData = highlightLayer.feature.properties;
                 updateSidebar(window.selectedLotData);
             }
@@ -182,6 +196,7 @@
                 return parseFloat(a.properties['NO LOT']) - parseFloat(b.properties['NO LOT']);
             });
 
+            // --- LOAD DATA LOT ---
             var layer_LOTFINAL_0 = new L.geoJson(json_LOTFINAL_0, {
                 onEachFeature: function(feature, layer) {
                     layer.on({
@@ -191,11 +206,22 @@
                         }
                     });
                 },
-                style: { color: 'white', weight: 1.5, fillColor: '#85b66f', fillOpacity: 0.3 }
+                style: { 
+                    color: '#ffffff', // Sempadan putih supaya nampak jelas atas satelit
+                    weight: 1, 
+                    fillColor: '#32cd32', 
+                    fillOpacity: 0.3 
+                }
             }).addTo(map);
+
+            // Automatik zoom ke kawasan lot sebaik sahaja aplikasi dibuka
+            if (json_LOTFINAL_0.features.length > 0) {
+                map.fitBounds(layer_LOTFINAL_0.getBounds());
+            }
 
             document.getElementById('dispTotal').innerText = json_LOTFINAL_0.features.length;
 
+            // --- FUNGSI CARI LOT ---
             function cariLot() {
                 var val = document.getElementById('inputLot').value.trim();
                 var found = false;
@@ -209,24 +235,24 @@
                 if (!found) alert("No Lot tidak dijumpai!");
             }
 
+            // --- FUNGSI RESET ---
             function resetPeta() {
                 document.getElementById('inputLot').value = "";
-                map.setView([2.1038, 102.5213], 19);
+                map.setView([2.10375, 102.52125], 19);
                 if (highlightLayer) layer_LOTFINAL_0.resetStyle(highlightLayer);
                 window.selectedLotData = null;
                 updateSidebar(null);
             }
 
+            // --- FUNGSI CETAK PDF ---
             async function cetakPDF() {
                 if (!window.selectedLotData) { alert("Pilih lot dahulu!"); return; }
                 document.getElementById('loading-overlay').style.display = 'block';
 
-                // Ambil snapshot peta
                 const mapCanvas = await html2canvas(document.getElementById('map'), { useCORS: true });
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('l', 'mm', 'a4'); // Format Landscape (Melintang)
+                const doc = new jsPDF('l', 'mm', 'a4'); 
 
-                // --- HEADER ---
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(22);
                 doc.text("LAPORAN MAKLUMAT LOT", 148.5, 25, { align: 'center' });
@@ -235,11 +261,9 @@
                 doc.setFont("helvetica", "normal");
                 doc.text("Dijana secara automatik melalui Land Explorer", 148.5, 32, { align: 'center' });
                 
-                // Garisan Pemisah
                 doc.setLineWidth(0.5);
                 doc.line(20, 38, 277, 38);
 
-                // --- DATA (SEBELAH KIRI) ---
                 let startY = 50;
                 const leftX = 20;
 
@@ -254,7 +278,6 @@
                     doc.setFont("helvetica", "bold");
                     doc.text(value.toString(), leftX, startY + 6);
                     
-                    // Garisan bawah setiap field
                     doc.setDrawColor(230, 230, 230);
                     doc.line(leftX, startY + 8, 90, startY + 8);
                     startY += 18;
@@ -266,18 +289,14 @@
                 drawField("KATEGORI / KEGUNAAN", window.selectedLotData['KEGUNAAN'] || "KEDIAMAN");
                 drawField("MAKLUMAT TAMBAHAN", "SISTEM PINTAR PUO");
 
-                // --- GAMBAR PETA (SEBELAH KANAN) ---
-                // Saiz petak peta dalam PDF
                 const imgWidth = 160;
                 const imgHeight = 110;
                 doc.addImage(mapCanvas.toDataURL('image/png'), 'PNG', 105, 50, imgWidth, imgHeight);
 
-                // Frame untuk peta
                 doc.setDrawColor(0, 0, 0);
                 doc.setLineWidth(0.2);
                 doc.rect(105, 50, imgWidth, imgHeight);
 
-                // Simpan Fail
                 doc.save("Laporan_Lot_" + window.selectedLotData['NO LOT'] + ".pdf");
                 document.getElementById('loading-overlay').style.display = 'none';
             }
