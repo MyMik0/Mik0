@@ -177,6 +177,13 @@
                 updateSidebar(window.selectedLotData);
             }
 
+            // --- KEMASKINI PENYUSUNAN DATA ---
+            // 1. Susun data JSON supaya No Lot mengikut turutan
+            json_LOTFINAL_0.features.sort(function(a, b) {
+                return parseFloat(a.properties['NO LOT']) - parseFloat(b.properties['NO LOT']);
+            });
+
+            // 2. Masukkan data yang telah disusun ke dalam layer peta
             var layer_LOTFINAL_0 = new L.geoJson(json_LOTFINAL_0, {
                 onEachFeature: function(feature, layer) {
                     layer.on({
