@@ -89,7 +89,8 @@
             .btn-green { background-color: #27ae60; }
             .btn-red { background-color: #c0392b; }
             .btn-blue { background-color: #2980b9; }
-            .btn-toggle { background-color: #7f8c8d; margin-bottom: 15px; } 
+            .btn-toggle { background-color: #7f8c8d; margin-bottom: 8px; } 
+            .btn-orange { background-color: #e67e22; }
             .btn i { margin-right: 8px; }
 
             .info-label { font-size: 10px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; }
@@ -124,8 +125,13 @@
 
             <div class="sidebar">
                 <div class="section-title"><i class="fas fa-cog"></i> Tetapan Paparan</div>
+                
                 <button class="btn btn-toggle" id="btnToggleHeader" onclick="toggleHeader()">
                     <i class="fas fa-eye-slash"></i> OFF HEADER
+                </button>
+
+                <button class="btn btn-orange" id="btnToggleSatellite" onclick="toggleSatellite()">
+                    <i class="fas fa-layer-group"></i> OFF SATELIT
                 </button>
 
                 <div class="control-group">
@@ -167,13 +173,29 @@
         <script src="data/LOTFINAL_0.js"></script>
 
         <script>
+            // PEMULAAN PETA
             var map = L.map('map', { zoomControl: true, maxZoom: 22 }).setView([2.10375, 102.52125], 19); 
+            
             var layer_GoogleSatellite = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
                 maxZoom: 22, maxNativeZoom: 20, attribution: 'Google Satellite'
             }).addTo(map);
 
             var highlightLayer;
             window.selectedLotData = null;
+
+            // FUNGSI BARU: TOGGLE SATELIT
+            function toggleSatellite() {
+                var btn = document.getElementById('btnToggleSatellite');
+                if (map.hasLayer(layer_GoogleSatellite)) {
+                    map.removeLayer(layer_GoogleSatellite);
+                    btn.innerHTML = '<i class="fas fa-layer-group"></i> ON SATELIT';
+                    btn.style.backgroundColor = "#27ae60"; // Tukar hijau jika off
+                } else {
+                    map.addLayer(layer_GoogleSatellite);
+                    btn.innerHTML = '<i class="fas fa-layer-group"></i> OFF SATELIT';
+                    btn.style.backgroundColor = "#e67e22"; // Balik ke oren jika on
+                }
+            }
 
             function updateMapStyle() {
                 var opacityVal = document.getElementById('opacityRange').value;
@@ -246,7 +268,7 @@
                 updateSidebar(null);
             }
 
-            // --- FUNGSI EKSPORT PDF YANG DIKEMASKINI ---
+            // --- FUNGSI EKSPORT PDF ---
             async function cetakPDF() {
                 if (!window.selectedLotData) { 
                     alert("Sila klik pada mana-mana lot di atas peta sebelum mencetak."); 
@@ -267,16 +289,13 @@
                 const pageWidth = 297;
                 const pageHeight = 210;
 
-                // 1. Latar Belakang & Sempadan (Border Laporan)
                 doc.setDrawColor(44, 62, 80);
                 doc.setLineWidth(1);
                 doc.rect(5, 5, pageWidth - 10, pageHeight - 10);
 
-                // 2. Header Box
                 doc.setFillColor(30, 37, 45);
                 doc.rect(5, 5, pageWidth - 10, 35, 'F');
                 
-                // Tajuk Utama
                 doc.setTextColor(255, 255, 255);
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(20);
@@ -286,7 +305,6 @@
                 doc.setFont("helvetica", "normal");
                 doc.text("POLITEKNIK UNGKU OMAR - SMART RESIDENT SYSTEM", pageWidth / 2, 28, { align: 'center' });
 
-                // 3. Maklumat Terperinci (Sebelah Kiri)
                 let yPos = 60;
                 const xMargin = 15;
                 
@@ -323,18 +341,15 @@
                     yPos += 20;
                 });
 
-                // 4. Visual Peta (Sebelah Kanan)
                 doc.setFontSize(12);
                 doc.setTextColor(44, 62, 80);
                 doc.text("PELAN LOKASI (SATELIT)", 130, 50);
                 
-                // Frame untuk peta
                 doc.setDrawColor(30, 37, 45);
                 doc.setLineWidth(0.5);
                 doc.rect(130, 55, 150, 110);
                 doc.addImage(mapCanvas.toDataURL('image/png'), 'PNG', 131, 56, 148, 108);
 
-                // 5. Footer & Tarikh
                 const now = new Date();
                 const tarikhCetak = now.toLocaleDateString('ms-MY', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                 
@@ -347,7 +362,6 @@
                 doc.text("Tarikh Cetakan: " + tarikhCetak, xMargin, 195);
                 doc.text("Dokumen ini dijana secara automatik melalui sistem GIS PUO. Tiada tandatangan diperlukan.", pageWidth - 15, 195, { align: 'right' });
 
-                // Simpan fail
                 doc.save("Laporan_Lot_" + (window.selectedLotData['NO LOT'] || "PUO") + ".pdf");
                 document.getElementById('loading-overlay').style.display = 'none';
             }
