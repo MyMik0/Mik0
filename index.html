@@ -104,6 +104,17 @@
                 display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); 
                 z-index: 9999; color:white; text-align:center; padding-top:20%; font-size: 18px;
             }
+
+            /* --- LABEL CSS --- */
+            .lot-label {
+                background: transparent;
+                border: none;
+                box-shadow: none;
+                color: white;
+                font-weight: bold;
+                text-shadow: 1px 1px 2px black;
+                font-size: 9px;
+            }
         </style>
     </head>
     <body>
@@ -157,6 +168,9 @@
                 <div class="info-label">No Lot Dipilih</div>
                 <div class="info-box" style="border-left-color: #f1c40f;"><div class="info-value" id="dispLot">-</div></div>
 
+                <div class="info-label">No PA</div>
+                <div class="info-box" style="border-left-color: #e74c3c;"><div class="info-value" id="dispPA">-</div></div>
+
                 <div class="info-label">Nama Pemilik</div>
                 <div class="info-box"><div class="info-value" id="dispPemilik" style="color: #3498db;">-</div></div>
 
@@ -183,17 +197,16 @@
             var highlightLayer;
             window.selectedLotData = null;
 
-            // FUNGSI BARU: TOGGLE SATELIT
             function toggleSatellite() {
                 var btn = document.getElementById('btnToggleSatellite');
                 if (map.hasLayer(layer_GoogleSatellite)) {
                     map.removeLayer(layer_GoogleSatellite);
                     btn.innerHTML = '<i class="fas fa-layer-group"></i> ON SATELIT';
-                    btn.style.backgroundColor = "#27ae60"; // Tukar hijau jika off
+                    btn.style.backgroundColor = "#27ae60"; 
                 } else {
                     map.addLayer(layer_GoogleSatellite);
                     btn.innerHTML = '<i class="fas fa-layer-group"></i> OFF SATELIT';
-                    btn.style.backgroundColor = "#e67e22"; // Balik ke oren jika on
+                    btn.style.backgroundColor = "#e67e22"; 
                 }
             }
 
@@ -218,15 +231,18 @@
                 setTimeout(function() { map.invalidateSize(); }, 200);
             }
 
+            // KEMASKINI SIDEBAR DENGAN DATA BARU (NO_LOT, pemilik_PEMIL, hakmilik_NO_I)
             function updateSidebar(props) {
                 if (props) {
-                    document.getElementById('dispLot').innerText = props['NO LOT'] || '-';
-                    document.getElementById('dispLuas').innerText = (props['AREA'] || props['LUAS'] || '0') + " m²";
-                    document.getElementById('dispPemilik').innerText = props['PEMILIK'] || "TIADA DATA";
+                    document.getElementById('dispLot').innerText = props['NO_LOT'] || '-';
+                    document.getElementById('dispPA').innerText = props['hakmilik_NO_I'] || '-';
+                    document.getElementById('dispPemilik').innerText = props['pemilik_PEMIL'] || "TIADA DATA";
+                    document.getElementById('dispLuas').innerText = (props['AREA'] || '0') + " m²";
                 } else {
                     document.getElementById('dispLot').innerText = "-";
-                    document.getElementById('dispLuas').innerText = "-";
+                    document.getElementById('dispPA').innerText = "-";
                     document.getElementById('dispPemilik').innerText = "-";
+                    document.getElementById('dispLuas').innerText = "-";
                 }
             }
 
@@ -238,8 +254,28 @@
                 updateSidebar(window.selectedLotData);
             }
 
+            // LOAD DATA DENGAN POPUP DAN LABEL
             var layer_LOTFINAL_0 = new L.geoJson(json_LOTFINAL_0, {
                 onEachFeature: function(feature, layer) {
+                    // 1. TAMBAH POPUP
+                    var popupContent = '<div style="font-family: Arial; min-width: 150px;">' +
+                        '<b style="color: #2c3e50;">MAKLUMAT LOT</b><hr>' +
+                        '<b>No Lot:</b> ' + (feature.properties['NO_LOT'] || '-') + '<br>' +
+                        '<b>No PA:</b> ' + (feature.properties['hakmilik_NO_I'] || '-') + '<br>' +
+                        '<b>Pemilik:</b> ' + (feature.properties['pemilik_PEMIL'] || 'TIADA DATA') + '<br>' +
+                        '<b>Luas:</b> ' + (feature.properties['AREA'] || '0') + ' m²' +
+                        '</div>';
+                    layer.bindPopup(popupContent);
+
+                    // 2. TAMBAH LABEL TERAPUNG (NO LOT)
+                    if (feature.properties['NO_LOT']) {
+                        layer.bindTooltip(feature.properties['NO_LOT'].toString(), {
+                            permanent: true, 
+                            direction: 'center', 
+                            className: 'lot-label'
+                        });
+                    }
+
                     layer.on({ click: function(e) { highlightFeature(e); L.DomEvent.stopPropagation(e); } });
                 },
                 style: { color: '#ffffff', weight: 1, fillColor: '#27ae60', fillOpacity: 0.3 }
@@ -251,9 +287,10 @@
                 var val = document.getElementById('inputLot').value.trim();
                 var found = false;
                 layer_LOTFINAL_0.eachLayer(function(layer) {
-                    if (layer.feature.properties['NO LOT'] == val) {
+                    if (layer.feature.properties['NO_LOT'] == val) {
                         map.fitBounds(layer.getBounds());
                         highlightFeature({target: layer});
+                        layer.openPopup();
                         found = true;
                     }
                 });
@@ -266,9 +303,9 @@
                 if (highlightLayer) layer_LOTFINAL_0.resetStyle(highlightLayer);
                 window.selectedLotData = null;
                 updateSidebar(null);
+                map.closePopup();
             }
 
-            // --- FUNGSI EKSPORT PDF ---
             async function cetakPDF() {
                 if (!window.selectedLotData) { 
                     alert("Sila klik pada mana-mana lot di atas peta sebelum mencetak."); 
@@ -316,11 +353,10 @@
                 doc.line(xMargin, 52, 80, 52);
 
                 const dataFields = [
-                    { label: "NOMBOR LOT", value: window.selectedLotData['NO LOT'] || "-" },
-                    { label: "NAMA PEMILIK", value: window.selectedLotData['PEMILIK'] || "TIADA MAKLUMAT" },
-                    { label: "LUAS KAWASAN", value: (window.selectedLotData['AREA'] || window.selectedLotData['LUAS'] || "0") + " Meter Persegi (m²)" },
-                    { label: "KEGUNAAN TANAH", value: window.selectedLotData['KEGUNAAN'] || "KEDIAMAN" },
-                    { label: "ZONING", value: "ZON PENDIDIKAN / AWAM" },
+                    { label: "NOMBOR LOT", value: window.selectedLotData['NO_LOT'] || "-" },
+                    { label: "NOMBOR PA", value: window.selectedLotData['hakmilik_NO_I'] || "-" },
+                    { label: "NAMA PEMILIK", value: window.selectedLotData['pemilik_PEMIL'] || "TIADA MAKLUMAT" },
+                    { label: "LUAS KAWASAN", value: (window.selectedLotData['AREA'] || "0") + " Meter Persegi (m²)" },
                     { label: "STATUS PENGESAHAN", value: "AKTIF & SAH" }
                 ];
 
@@ -362,7 +398,7 @@
                 doc.text("Tarikh Cetakan: " + tarikhCetak, xMargin, 195);
                 doc.text("Dokumen ini dijana secara automatik melalui sistem GIS PUO. Tiada tandatangan diperlukan.", pageWidth - 15, 195, { align: 'right' });
 
-                doc.save("Laporan_Lot_" + (window.selectedLotData['NO LOT'] || "PUO") + ".pdf");
+                doc.save("Laporan_Lot_" + (window.selectedLotData['NO_LOT'] || "PUO") + ".pdf");
                 document.getElementById('loading-overlay').style.display = 'none';
             }
         </script>
