@@ -27,13 +27,13 @@
             .section-title { font-size: 14px; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; margin-top: 10px; }
             .section-title i { margin-right: 8px; color: #3498db; }
             .control-group { margin-bottom: 20px; background: #2c3e50; padding: 12px; border-radius: 6px; }
-            input[type="text"] { width: 100%; padding: 10px; background: #161c23; border: 1px solid #3e4f5f; color: white; border-radius: 4px; margin-bottom: 10px; box-sizing: border-box; }
+            input[type="text"] { width: 100%; padding: 12px; background: #161c23; border: 1px solid #3e4f5f; color: white; border-radius: 4px; margin-bottom: 10px; box-sizing: border-box; font-size: 14px; }
             .btn { width: 100%; padding: 12px; border: none; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; margin-bottom: 8px; font-size: 11px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
             .btn-green { background-color: #27ae60; }
             .btn-red { background-color: #c0392b; }
             .btn-blue { background-color: #2980b9; }
             .info-label { font-size: 10px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; }
-            .info-box { background: #161c23; border-radius: 6px; padding: 12px; margin-top: 4px; border-left: 4px solid #27ae60; }
+            .info-box { background: #161c23; border-radius: 6px; padding: 12px; margin-top: 4px; border-left: 4px solid #27ae60; min-height: 20px; }
             .info-value { font-size: 15px; font-weight: bold; color: #2ecc71; word-wrap: break-word; }
             .lot-label { background: transparent; border: none; box-shadow: none; color: white; font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 9px; pointer-events: none; }
         </style>
@@ -54,22 +54,24 @@
         <div class="main-wrapper">
             <div id="map"></div>
             <div class="sidebar">
-                <div class="section-title"><i class="fas fa-globe"></i> Land Explorer</div>
+                <div class="section-title"><i class="fas fa-search"></i> Cari Lot Tanah</div>
                 <div class="control-group">
-                    <input type="text" id="inputLot" placeholder="Masukkan No Lot (Contoh: 11462)">
-                    <button class="btn btn-green" onclick="cariLot()"><i class="fas fa-search"></i> Cari Lot</button>
-                    <button class="btn btn-red" onclick="resetPeta()"><i class="fas fa-undo"></i> Reset Peta</button>
-                    <button class="btn btn-blue" onclick="cetakPDF()"><i class="fas fa-file-pdf"></i> Export Laporan</button>
+                    <input type="text" id="inputLot" placeholder="Masukkan No Lot...">
+                    <button class="btn btn-green" onclick="cariLot()"><i class="fas fa-search"></i> Cari Sekarang</button>
+                    <button class="btn btn-red" onclick="resetPeta()"><i class="fas fa-undo"></i> Reset</button>
                 </div>
 
-                <div class="info-label">No Lot Dipilih</div>
+                <div class="section-title"><i class="fas fa-info-circle"></i> Maklumat Terperinci</div>
+                <div class="info-label">No Lot</div>
                 <div class="info-box" style="border-left-color: #f1c40f;"><div class="info-value" id="dispLot">-</div></div>
-                <div class="info-label">No PA (Hakmilik)</div>
+                <div class="info-label">No PA / Hakmilik</div>
                 <div class="info-box" style="border-left-color: #e74c3c;"><div class="info-value" id="dispPA">-</div></div>
                 <div class="info-label">Nama Pemilik</div>
                 <div class="info-box"><div class="info-value" id="dispPemilik" style="color: #3498db;">-</div></div>
-                <div class="info-label">Luas Lot</div>
+                <div class="info-label">Luas Kawasan</div>
                 <div class="info-box"><div class="info-value" id="dispLuas">-</div></div>
+                
+                <button class="btn btn-blue" onclick="cetakPDF()" style="margin-top: 20px;"><i class="fas fa-file-pdf"></i> Cetak Laporan</button>
             </div>
         </div>
 
@@ -79,39 +81,43 @@
         <script src="data/LOTFINAL_0.js"></script>
 
         <script>
+            // 1. Inisialisasi Peta
             var map = L.map('map', { zoomControl: true, maxZoom: 22 }).setView([2.10375, 102.52125], 19); 
             L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { maxZoom: 22 }).addTo(map);
 
             var highlightLayer;
 
-            // Fungsi pengesan kolum yang fleksibel
-            function getProp(props, keyName) {
+            // 2. Fungsi 'getProp' yang lebih pintar (Mencari kunci yang hampir sama)
+            function getProp(props, keyToFind) {
                 if (!props) return "-";
                 const keys = Object.keys(props);
-                const foundKey = keys.find(k => k.toLowerCase() === keyName.toLowerCase());
+                // Cuba cari kunci yang mengandungi perkataan tersebut (contoh: 'lot' dalam 'NO_LOT')
+                const foundKey = keys.find(k => k.toLowerCase().includes(keyToFind.toLowerCase()));
                 return foundKey ? props[foundKey] : "-";
             }
 
+            // 3. Kemaskini Sidebar
             function updateSidebar(props) {
-                if (props) {
-                    document.getElementById('dispLot').innerText = getProp(props, 'NO_LOT');
-                    document.getElementById('dispPA').innerText = getProp(props, 'hakmilik_NO_I');
-                    document.getElementById('dispPemilik').innerText = getProp(props, 'pemilik_PEMIL');
-                    document.getElementById('dispLuas').innerText = getProp(props, 'AREA') + " m²";
-                }
+                console.log("Data Lot Diklik:", props); // DEBUG: Lihat di F12 Console
+                document.getElementById('dispLot').innerText = getProp(props, 'no_lot');
+                document.getElementById('dispPA').innerText = getProp(props, 'hakmilik_no_i');
+                document.getElementById('dispPemilik').innerText = getProp(props, 'pemilik_pemil');
+                document.getElementById('dispLuas').innerText = getProp(props, 'area') + " m²";
             }
 
             function highlightFeature(e) {
                 if (highlightLayer) { layer_LOTFINAL_0.resetStyle(highlightLayer); }
                 highlightLayer = e.target;
-                highlightLayer.setStyle({ weight: 4, color: '#f1c40f', fillOpacity: 0.5 });
+                highlightLayer.setStyle({ weight: 5, color: '#f1c40f', fillOpacity: 0.4 });
                 updateSidebar(highlightLayer.feature.properties);
             }
 
+            // 4. Load Data GeoJSON
             var layer_LOTFINAL_0 = new L.geoJson(json_LOTFINAL_0, {
                 onEachFeature: function(feature, layer) {
-                    var lotNo = getProp(feature.properties, 'NO_LOT');
+                    var lotNo = getProp(feature.properties, 'no_lot');
                     layer.bindPopup("<b>No Lot:</b> " + lotNo);
+                    
                     if (lotNo !== "-") {
                         layer.bindTooltip(lotNo.toString(), { permanent: true, direction: 'center', className: 'lot-label' });
                     }
@@ -120,18 +126,22 @@
                 style: { color: '#ffffff', weight: 1, fillColor: '#27ae60', fillOpacity: 0.3 }
             }).addTo(map);
 
-            // --- FUNGSI CARI LOT YANG TELAH DIBETULKAN ---
+            // 5. FUNGSI CARIAN (VERSI BARU - LEBIH KUAT)
             function cariLot() {
                 var inputVal = document.getElementById('inputLot').value.trim();
-                if (!inputVal) return;
+                if (inputVal === "") {
+                    alert("Sila masukkan nombor lot!");
+                    return;
+                }
 
                 var found = false;
+                
                 layer_LOTFINAL_0.eachLayer(function(layer) {
-                    // Ambil data NO_LOT dari layer
-                    var dataLot = getProp(layer.feature.properties, 'NO_LOT');
+                    // Ambil apa sahaja field yang ada kaitan dengan 'lot'
+                    var dataLot = getProp(layer.feature.properties, 'no_lot');
                     
-                    // Bandingkan secara String untuk elak ralat format
-                    if (dataLot.toString() === inputVal.toString()) {
+                    // Kita bandingkan secara 'string' dan buang sebarang 'space'
+                    if (dataLot.toString().trim() === inputVal.toString()) {
                         map.fitBounds(layer.getBounds());
                         highlightFeature({target: layer});
                         layer.openPopup();
@@ -140,12 +150,22 @@
                 });
 
                 if (!found) {
-                    alert("No Lot " + inputVal + " tidak dijumpai dalam pangkalan data!");
+                    alert("Maaf, No Lot " + inputVal + " tidak dijumpai. Pastikan nombor betul.");
+                    console.log("Carian gagal untuk:", inputVal);
                 }
             }
 
             function resetPeta() {
                 location.reload();
+            }
+
+            // Fungsi Cetak Ringkas
+            function cetakPDF() {
+                if (document.getElementById('dispLot').innerText === "-") {
+                    alert("Sila pilih satu lot terlebih dahulu!");
+                    return;
+                }
+                window.print();
             }
         </script>
     </body>
