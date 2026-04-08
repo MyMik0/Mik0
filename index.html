@@ -160,8 +160,8 @@
                 <div class="info-label">Nama Pemilik</div>
                 <div class="info-box"><div class="info-value" id="dispPemilik" style="color: #3498db;">-</div></div>
 
-                <div class="info-label">Luas Lot</div>
-                <div class="info-box"><div class="info-value" id="dispLuas">-</div></div>
+                <div class="info-label">No PA</div>
+                <div class="info-box"><div class="info-value" id="dispPA">-</div></div>
             </div>
         </div>
 
@@ -189,11 +189,11 @@
                 if (map.hasLayer(layer_GoogleSatellite)) {
                     map.removeLayer(layer_GoogleSatellite);
                     btn.innerHTML = '<i class="fas fa-layer-group"></i> ON SATELIT';
-                    btn.style.backgroundColor = "#27ae60"; // Tukar hijau jika off
+                    btn.style.backgroundColor = "#27ae60";
                 } else {
                     map.addLayer(layer_GoogleSatellite);
                     btn.innerHTML = '<i class="fas fa-layer-group"></i> OFF SATELIT';
-                    btn.style.backgroundColor = "#e67e22"; // Balik ke oren jika on
+                    btn.style.backgroundColor = "#e67e22";
                 }
             }
 
@@ -221,12 +221,12 @@
             function updateSidebar(props) {
                 if (props) {
                     document.getElementById('dispLot').innerText = props['NO LOT'] || '-';
-                    document.getElementById('dispLuas').innerText = (props['AREA'] || props['LUAS'] || '0') + " m²";
                     document.getElementById('dispPemilik').innerText = props['PEMILIK'] || "TIADA DATA";
+                    document.getElementById('dispPA').innerText = props['NO PA'] || "-";
                 } else {
                     document.getElementById('dispLot').innerText = "-";
-                    document.getElementById('dispLuas').innerText = "-";
                     document.getElementById('dispPemilik').innerText = "-";
+                    document.getElementById('dispPA').innerText = "-";
                 }
             }
 
@@ -318,9 +318,8 @@
                 const dataFields = [
                     { label: "NOMBOR LOT", value: window.selectedLotData['NO LOT'] || "-" },
                     { label: "NAMA PEMILIK", value: window.selectedLotData['PEMILIK'] || "TIADA MAKLUMAT" },
-                    { label: "LUAS KAWASAN", value: (window.selectedLotData['AREA'] || window.selectedLotData['LUAS'] || "0") + " Meter Persegi (m²)" },
-                    { label: "KEGUNAAN TANAH", value: window.selectedLotData['KEGUNAAN'] || "KEDIAMAN" },
-                    { label: "ZONING", value: "ZON PENDIDIKAN / AWAM" },
+                    { label: "NOMBOR PA", value: window.selectedLotData['NO PA'] || "-" },
+                    { label: "LUAS KAWASAN", value: (window.selectedLotData['AREA'] || window.selectedLotData['LUAS'] || "0") + " m²" },
                     { label: "STATUS PENGESAHAN", value: "AKTIF & SAH" }
                 ];
 
