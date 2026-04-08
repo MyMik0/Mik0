@@ -17,7 +17,6 @@
         <style>
             html, body { height: 100%; margin: 0; padding: 0; display: flex; flex-direction: column; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
 
-            /* --- HEADER SECTION --- */
             header {
                 position: relative; height: 120px; width: 100%; overflow: hidden;
                 display: flex; align-items: center; justify-content: center; color: white;
@@ -31,90 +30,45 @@
             }
 
             .header-content { display: flex; align-items: center; width: 95%; justify-content: space-between; z-index: 1; }
-            
-            .logo-politeknik { 
-                height: 85px; 
-                width: auto; 
-                filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
-            }
+            .logo-politeknik { height: 85px; width: auto; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5)); }
+            .header-title h1 { margin: 0; font-size: 24px; text-transform: uppercase; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); text-align: right; }
 
-            .header-title h1 { 
-                margin: 0; 
-                font-size: 24px; 
-                text-transform: uppercase; 
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
-                text-align: right;
-            }
-
-            /* --- LAYOUT UTAMA --- */
             .main-wrapper { display: flex; flex: 1; position: relative; overflow: hidden; }
-
             #map { flex: 1; background: #f0f0f0; }
 
             .sidebar {
-                width: 320px;
-                background-color: #1e252d; 
-                color: #ecf0f1;
-                display: flex;
-                flex-direction: column;
-                padding: 15px;
-                box-shadow: -2px 0 10px rgba(0,0,0,0.3);
-                z-index: 999;
-                overflow-y: auto;
+                width: 320px; background-color: #1e252d; color: #ecf0f1;
+                display: flex; flex-direction: column; padding: 15px;
+                box-shadow: -2px 0 10px rgba(0,0,0,0.3); z-index: 999; overflow-y: auto;
             }
 
             .section-title { font-size: 14px; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; margin-top: 10px; }
             .section-title i { margin-right: 8px; color: #3498db; }
-
             .control-group { margin-bottom: 20px; background: #2c3e50; padding: 12px; border-radius: 6px; }
-            
             label { font-size: 11px; color: #bdc3c7; display: block; margin-bottom: 5px; text-transform: uppercase; }
 
-            input[type="text"], input[type="range"], input[type="color"] {
-                width: 100%; box-sizing: border-box;
-            }
-            
-            input[type="text"] {
-                padding: 10px; background: #161c23; border: 1px solid #3e4f5f;
-                color: white; border-radius: 4px; margin-bottom: 10px;
-            }
+            input[type="text"], input[type="range"], input[type="color"] { width: 100%; box-sizing: border-box; }
+            input[type="text"] { padding: 10px; background: #161c23; border: 1px solid #3e4f5f; color: white; border-radius: 4px; margin-bottom: 10px; }
 
             .btn {
                 width: 100%; padding: 12px; border: none; border-radius: 4px; color: white;
                 font-weight: bold; cursor: pointer; margin-bottom: 8px; font-size: 11px;
-                text-transform: uppercase; display: flex; align-items: center; justify-content: center;
-                transition: 0.3s;
+                text-transform: uppercase; display: flex; align-items: center; justify-content: center; transition: 0.3s;
             }
-            .btn:hover { filter: brightness(1.2); }
             .btn-green { background-color: #27ae60; }
             .btn-red { background-color: #c0392b; }
             .btn-blue { background-color: #2980b9; }
-            .btn-toggle { background-color: #7f8c8d; margin-bottom: 8px; } 
             .btn-orange { background-color: #e67e22; }
-            .btn i { margin-right: 8px; }
+            .btn-toggle { background-color: #7f8c8d; }
+            .btn:hover { filter: brightness(1.2); }
 
             .info-label { font-size: 10px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; }
-            .info-box {
-                background: #161c23; border-radius: 6px; padding: 12px; margin-top: 4px;
-                border-left: 4px solid #27ae60;
-            }
-            .info-value { font-size: 16px; font-weight: bold; color: #2ecc71; }
+            .info-box { background: #161c23; border-radius: 6px; padding: 12px; margin-top: 4px; border-left: 4px solid #27ae60; }
+            .info-value { font-size: 15px; font-weight: bold; color: #2ecc71; word-wrap: break-word; }
 
-            #loading-overlay {
-                display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); 
-                z-index: 9999; color:white; text-align:center; padding-top:20%; font-size: 18px;
-            }
-
-            /* --- LABEL CSS --- */
-            .lot-label {
-                background: transparent;
-                border: none;
-                box-shadow: none;
-                color: white;
-                font-weight: bold;
-                text-shadow: 1px 1px 2px black;
-                font-size: 9px;
-            }
+            #loading-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index: 9999; color:white; text-align:center; padding-top:20%; font-size: 18px; }
+            
+            .lot-label { background: transparent; border: none; box-shadow: none; color: white; font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 9px; pointer-events: none; }
         </style>
     </head>
     <body>
@@ -124,7 +78,7 @@
                 <source src="https://www.w3schools.com/howto/rain.mp4" type="video/mp4">
             </video>
             <div class="header-content">
-                <img src="Poli_Logo1-1024x599.png" alt="Logo Politeknik Ungku Omar" class="logo-politeknik">
+                <img src="Poli_Logo1-1024x599.png" alt="Logo PUO" class="logo-politeknik">
                 <div class="header-title">
                     <h1>Sistem Peta Lot Tanah<br><span style="font-size: 16px;">Politeknik Ungku Omar</span></h1>
                 </div>
@@ -136,19 +90,13 @@
 
             <div class="sidebar">
                 <div class="section-title"><i class="fas fa-cog"></i> Tetapan Paparan</div>
-                
-                <button class="btn btn-toggle" id="btnToggleHeader" onclick="toggleHeader()">
-                    <i class="fas fa-eye-slash"></i> OFF HEADER
-                </button>
+                <button class="btn btn-toggle" id="btnToggleHeader" onclick="toggleHeader()"><i class="fas fa-eye-slash"></i> OFF HEADER</button>
+                <button class="btn btn-orange" id="btnToggleSatellite" onclick="toggleSatellite()" style="margin-top:5px;"><i class="fas fa-layer-group"></i> OFF SATELIT</button>
 
-                <button class="btn btn-orange" id="btnToggleSatellite" onclick="toggleSatellite()">
-                    <i class="fas fa-layer-group"></i> OFF SATELIT
-                </button>
-
-                <div class="control-group">
-                    <label>Ketelusan Lot (Opacity)</label>
+                <div class="control-group" style="margin-top:10px;">
+                    <label>Ketelusan Lot</label>
                     <input type="range" id="opacityRange" min="0" max="1" step="0.1" value="0.3" oninput="updateMapStyle()">
-                    <label style="margin-top:10px;">Warna Sempadan (Border)</label>
+                    <label style="margin-top:10px;">Warna Sempadan</label>
                     <input type="color" id="borderColor" value="#ffffff" onchange="updateMapStyle()">
                 </div>
 
@@ -157,18 +105,13 @@
                     <input type="text" id="inputLot" placeholder="Masukkan No Lot...">
                     <button class="btn btn-green" onclick="cariLot()"><i class="fas fa-search"></i> Cari Lot</button>
                     <button class="btn btn-red" onclick="resetPeta()"><i class="fas fa-undo"></i> Reset Peta</button>
-                    <button class="btn btn-blue" onclick="cetakPDF()"><i class="fas fa-file-pdf"></i> Export Laporan Rasmi</button>
+                    <button class="btn btn-blue" onclick="cetakPDF()"><i class="fas fa-file-pdf"></i> Export Laporan</button>
                 </div>
-
-                <hr style="border: 0; border-top: 1px solid #34495e; width: 100%; margin: 10px 0;">
-
-                <div class="info-label">Total Lot Keseluruhan</div>
-                <div class="info-box"><div class="info-value" id="dispTotal">0</div></div>
 
                 <div class="info-label">No Lot Dipilih</div>
                 <div class="info-box" style="border-left-color: #f1c40f;"><div class="info-value" id="dispLot">-</div></div>
 
-                <div class="info-label">No PA</div>
+                <div class="info-label">No PA (Hakmilik)</div>
                 <div class="info-box" style="border-left-color: #e74c3c;"><div class="info-value" id="dispPA">-</div></div>
 
                 <div class="info-label">Nama Pemilik</div>
@@ -179,7 +122,7 @@
             </div>
         </div>
 
-        <div id="loading-overlay">Sedang Menjana Laporan Premium...</div>
+        <div id="loading-overlay">Sedang Menjana Laporan...</div>
 
         <script src="js/qgis2web_expressions.js"></script>
         <script src="js/leaflet.js"></script>
@@ -187,7 +130,6 @@
         <script src="data/LOTFINAL_0.js"></script>
 
         <script>
-            // PEMULAAN PETA
             var map = L.map('map', { zoomControl: true, maxZoom: 22 }).setView([2.10375, 102.52125], 19); 
             
             var layer_GoogleSatellite = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
@@ -196,6 +138,15 @@
 
             var highlightLayer;
             window.selectedLotData = null;
+
+            // Fungsi untuk dapatkan data walaupun nama field berubah (huruf besar/kecil)
+            function getProp(props, keyName) {
+                if (!props) return "-";
+                // Cari key yang mengandungi perkataan kunci (case insensitive)
+                const keys = Object.keys(props);
+                const foundKey = keys.find(k => k.toLowerCase() === keyName.toLowerCase());
+                return foundKey ? props[foundKey] : "-";
+            }
 
             function toggleSatellite() {
                 var btn = document.getElementById('btnToggleSatellite');
@@ -231,13 +182,12 @@
                 setTimeout(function() { map.invalidateSize(); }, 200);
             }
 
-            // KEMASKINI SIDEBAR DENGAN DATA BARU (NO_LOT, pemilik_PEMIL, hakmilik_NO_I)
             function updateSidebar(props) {
                 if (props) {
-                    document.getElementById('dispLot').innerText = props['NO_LOT'] || '-';
-                    document.getElementById('dispPA').innerText = props['hakmilik_NO_I'] || '-';
-                    document.getElementById('dispPemilik').innerText = props['pemilik_PEMIL'] || "TIADA DATA";
-                    document.getElementById('dispLuas').innerText = (props['AREA'] || '0') + " m²";
+                    document.getElementById('dispLot').innerText = getProp(props, 'NO_LOT');
+                    document.getElementById('dispPA').innerText = getProp(props, 'hakmilik_NO_I');
+                    document.getElementById('dispPemilik').innerText = getProp(props, 'pemilik_PEMIL');
+                    document.getElementById('dispLuas').innerText = getProp(props, 'AREA') + " m²";
                 } else {
                     document.getElementById('dispLot').innerText = "-";
                     document.getElementById('dispPA').innerText = "-";
@@ -254,26 +204,26 @@
                 updateSidebar(window.selectedLotData);
             }
 
-            // LOAD DATA DENGAN POPUP DAN LABEL
             var layer_LOTFINAL_0 = new L.geoJson(json_LOTFINAL_0, {
                 onEachFeature: function(feature, layer) {
-                    // 1. TAMBAH POPUP
-                    var popupContent = '<div style="font-family: Arial; min-width: 150px;">' +
-                        '<b style="color: #2c3e50;">MAKLUMAT LOT</b><hr>' +
-                        '<b>No Lot:</b> ' + (feature.properties['NO_LOT'] || '-') + '<br>' +
-                        '<b>No PA:</b> ' + (feature.properties['hakmilik_NO_I'] || '-') + '<br>' +
-                        '<b>Pemilik:</b> ' + (feature.properties['pemilik_PEMIL'] || 'TIADA DATA') + '<br>' +
-                        '<b>Luas:</b> ' + (feature.properties['AREA'] || '0') + ' m²' +
+                    var p = feature.properties;
+                    // Auto-detect fields
+                    var lotNo = getProp(p, 'NO_LOT');
+                    var paNo = getProp(p, 'hakmilik_NO_I');
+                    var owner = getProp(p, 'pemilik_PEMIL');
+                    var area = getProp(p, 'AREA');
+
+                    var popupContent = '<div style="font-family: Arial; min-width: 160px;">' +
+                        '<b style="color: #2c3e50;">MAKLUMAT LOT</b><hr style="margin:5px 0">' +
+                        '<b>No Lot:</b> ' + lotNo + '<br>' +
+                        '<b>No PA:</b> ' + paNo + '<br>' +
+                        '<b>Pemilik:</b> ' + owner + '<br>' +
+                        '<b>Luas:</b> ' + area + ' m²' +
                         '</div>';
                     layer.bindPopup(popupContent);
 
-                    // 2. TAMBAH LABEL TERAPUNG (NO LOT)
-                    if (feature.properties['NO_LOT']) {
-                        layer.bindTooltip(feature.properties['NO_LOT'].toString(), {
-                            permanent: true, 
-                            direction: 'center', 
-                            className: 'lot-label'
-                        });
+                    if (lotNo !== "-") {
+                        layer.bindTooltip(lotNo.toString(), { permanent: true, direction: 'center', className: 'lot-label' });
                     }
 
                     layer.on({ click: function(e) { highlightFeature(e); L.DomEvent.stopPropagation(e); } });
@@ -281,13 +231,11 @@
                 style: { color: '#ffffff', weight: 1, fillColor: '#27ae60', fillOpacity: 0.3 }
             }).addTo(map);
 
-            document.getElementById('dispTotal').innerText = json_LOTFINAL_0.features.length;
-
             function cariLot() {
                 var val = document.getElementById('inputLot').value.trim();
                 var found = false;
                 layer_LOTFINAL_0.eachLayer(function(layer) {
-                    if (layer.feature.properties['NO_LOT'] == val) {
+                    if (getProp(layer.feature.properties, 'NO_LOT').toString() === val) {
                         map.fitBounds(layer.getBounds());
                         highlightFeature({target: layer});
                         layer.openPopup();
@@ -307,98 +255,29 @@
             }
 
             async function cetakPDF() {
-                if (!window.selectedLotData) { 
-                    alert("Sila klik pada mana-mana lot di atas peta sebelum mencetak."); 
-                    return; 
-                }
-                
+                if (!window.selectedLotData) { alert("Sila pilih lot dahulu!"); return; }
                 document.getElementById('loading-overlay').style.display = 'block';
-                const mapElement = document.getElementById('map');
-                
-                const mapCanvas = await html2canvas(mapElement, {
-                    useCORS: true,
-                    scale: 2,
-                    logging: false
-                });
-
+                const mapCanvas = await html2canvas(document.getElementById('map'), { useCORS: true, scale: 2 });
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF('l', 'mm', 'a4');
-                const pageWidth = 297;
-                const pageHeight = 210;
-
-                doc.setDrawColor(44, 62, 80);
-                doc.setLineWidth(1);
-                doc.rect(5, 5, pageWidth - 10, pageHeight - 10);
-
+                
                 doc.setFillColor(30, 37, 45);
-                doc.rect(5, 5, pageWidth - 10, 35, 'F');
-                
+                doc.rect(5, 5, 287, 35, 'F');
                 doc.setTextColor(255, 255, 255);
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(20);
-                doc.text("LAPORAN MAKLUMAT LOT TANAH RASMI", pageWidth / 2, 20, { align: 'center' });
-                
-                doc.setFontSize(10);
-                doc.setFont("helvetica", "normal");
-                doc.text("POLITEKNIK UNGKU OMAR - SMART RESIDENT SYSTEM", pageWidth / 2, 28, { align: 'center' });
+                doc.setFontSize(18);
+                doc.text("LAPORAN RASMI LOT TANAH PUO", 148, 25, { align: 'center' });
 
-                let yPos = 60;
-                const xMargin = 15;
-                
                 doc.setTextColor(44, 62, 80);
-                doc.setFontSize(14);
-                doc.text("BUTIRAN HARTANAH", xMargin, 50);
-                doc.setDrawColor(39, 174, 96);
-                doc.setLineWidth(1);
-                doc.line(xMargin, 52, 80, 52);
-
-                const dataFields = [
-                    { label: "NOMBOR LOT", value: window.selectedLotData['NO_LOT'] || "-" },
-                    { label: "NOMBOR PA", value: window.selectedLotData['hakmilik_NO_I'] || "-" },
-                    { label: "NAMA PEMILIK", value: window.selectedLotData['pemilik_PEMIL'] || "TIADA MAKLUMAT" },
-                    { label: "LUAS KAWASAN", value: (window.selectedLotData['AREA'] || "0") + " Meter Persegi (m²)" },
-                    { label: "STATUS PENGESAHAN", value: "AKTIF & SAH" }
-                ];
-
-                dataFields.forEach(field => {
-                    doc.setFontSize(9);
-                    doc.setFont("helvetica", "bold");
-                    doc.setTextColor(127, 140, 141);
-                    doc.text(field.label, xMargin, yPos);
-                    
-                    doc.setFontSize(11);
-                    doc.setFont("helvetica", "normal");
-                    doc.setTextColor(44, 62, 80);
-                    doc.text(field.value.toString(), xMargin, yPos + 6);
-                    
-                    doc.setDrawColor(230, 230, 230);
-                    doc.setLineWidth(0.1);
-                    doc.line(xMargin, yPos + 10, 110, yPos + 10);
-                    yPos += 20;
-                });
-
                 doc.setFontSize(12);
-                doc.setTextColor(44, 62, 80);
-                doc.text("PELAN LOKASI (SATELIT)", 130, 50);
-                
-                doc.setDrawColor(30, 37, 45);
-                doc.setLineWidth(0.5);
-                doc.rect(130, 55, 150, 110);
-                doc.addImage(mapCanvas.toDataURL('image/png'), 'PNG', 131, 56, 148, 108);
+                let p = window.selectedLotData;
+                doc.text("Butiran Hartanah:", 15, 55);
+                doc.text("No Lot: " + getProp(p, 'NO_LOT'), 15, 65);
+                doc.text("No PA: " + getProp(p, 'hakmilik_NO_I'), 15, 75);
+                doc.text("Pemilik: " + getProp(p, 'pemilik_PEMIL'), 15, 85);
+                doc.text("Luas: " + getProp(p, 'AREA') + " m²", 15, 95);
 
-                const now = new Date();
-                const tarikhCetak = now.toLocaleDateString('ms-MY', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-                
-                doc.setFillColor(245, 245, 245);
-                doc.rect(5, 185, pageWidth - 10, 20, 'F');
-                
-                doc.setFontSize(8);
-                doc.setTextColor(127, 140, 141);
-                doc.setFont("helvetica", "italic");
-                doc.text("Tarikh Cetakan: " + tarikhCetak, xMargin, 195);
-                doc.text("Dokumen ini dijana secara automatik melalui sistem GIS PUO. Tiada tandatangan diperlukan.", pageWidth - 15, 195, { align: 'right' });
-
-                doc.save("Laporan_Lot_" + (window.selectedLotData['NO_LOT'] || "PUO") + ".pdf");
+                doc.addImage(mapCanvas.toDataURL('image/png'), 'PNG', 130, 50, 150, 110);
+                doc.save("Laporan_Lot_" + getProp(p, 'NO_LOT') + ".pdf");
                 document.getElementById('loading-overlay').style.display = 'none';
             }
         </script>
